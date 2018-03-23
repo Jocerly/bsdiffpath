@@ -22,7 +22,9 @@ Android 增量更新方案：插件式更新
 解压，将刚刚解压出来的那些.c/.h文件复制到cpp目录下，
 将AS自动生成的那个CMakeLists.txt文件拷贝到cpp目录下，并且在bzip2目录下再创建一个CMakeLists.txt
 3、bzip2目录下CMakeLists.txt修改：
+
           #bzip2PROJECT(bzip2)
+          
  cpp目录下的CMakeLists.txt：
 
         cmake_minimum_required(VERSION 3.4.1)
@@ -56,7 +58,9 @@ Android 增量更新方案：插件式更新
              */
             public native int patch(String oldAPKPath, String newAPKPath, String patchPath);
         }
+        
 然后回到bspatch.c文件中，添加jni方法：
+
         JNIEXPORT jint JNICALL Java_cn_jocerly_bsdiffpatch_MainActivity_patch(JNIEnv *env, jobject instance,
                                                                      jstring oldAPKPath_,
                                                                      jstring newAPKPath_,
@@ -140,6 +144,7 @@ OK，native方法写好了，接下来我们就来编写Java代码，实现增�
             }
         }
         
+        
 Apk安装工具类
 
 注意，在Android 7.0以上，为了提高私有文件的安全性，面向 Android 7.0 或更高版本的应用私有目录被限制访问　(0700)。此设置可防止私有文件的元数据泄漏，如它们的大小或存在性。 因此，在Android 7以上，在应用之间共享文件受到了很大的限制。
@@ -154,6 +159,7 @@ Apk安装工具类
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
              context.startActivity(intent);
          }
+         
 系统将会抛出一个 FileUriExposedException 异常。 解决办法是，使用FileProvider。
 
 在Manifest文件中，<application></application>标签之间，添加:
@@ -167,6 +173,7 @@ Apk安装工具类
                         android:name="android.support.FILE_PROVIDER_PATHS"
                         android:resource="@xml/file_paths" />
         </provider>
+        
 以启用FileProvider。注意<meta-data>标签，我们还需要提供一个资源文件，用来标识需要共享的文件。
 
 在res文件下新建一个xml目录，并添加file_paths.xml文件。
@@ -175,6 +182,7 @@ Apk安装工具类
         <paths xmlns:android="http://schemas.android.com/apk/res/android">
             <root-path name="latest.apk" path="" />
         </paths>
+        
 这里<root_path>并未在官方文档中指出，它指代Environment.getExternalStorageDirectory()目录， 这个目录一般为/storage/emulator/0/，path为添加在其后的路径，name为文件名。 这里，指明我们的新apk文件在/storage/emulator/0/diffpatch/latest.apk路径下。
 
 OK，配置完FileProvider后，我们编写ApkUtils.java:
@@ -193,6 +201,8 @@ OK，配置完FileProvider后，我们编写ApkUtils.java:
             }
 
         }
+        
+        
 请大家自行与之前的installApk()方法对比，看看使用FileProvider后，获取文件Uri的方式有怎样的变化。
 
 至此，增量更新的代码就编写完成了。                      
